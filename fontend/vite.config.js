@@ -15,9 +15,10 @@ export default defineConfig({
       host: "localhost",
       port: 5173,
     },
+
     proxy: {
       "/api": {
-        target: "http://localhost:3000",
+        target: "https://clothify-ai-3.onrender.com",
         changeOrigin: true,
         secure: false,
       },
@@ -26,5 +27,19 @@ export default defineConfig({
   preview: {
     port: 5173,
     strictPort: true,
+  },
+
+  build: {
+    outDir: "dist",
+    sourcemap: false,
+    chunkSizeWarningLimit: 1600,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ["react", "react-dom"],
+          three: ["three", "@react-three/fiber", "@react-three/drei"],
+        },
+      },
+    },
   },
 });

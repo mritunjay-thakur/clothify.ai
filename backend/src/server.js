@@ -106,6 +106,7 @@ app.use((req, res, next) => {
 });
 
 app.get("/api/csrf-token", (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "https://aiclothify.vercel.app");
   res.json({ csrfToken: req.csrfToken() });
 });
 
@@ -143,17 +144,12 @@ if (process.env.NODE_ENV === "production") {
 
 app.use((err, req, res, next) => {
   console.error("Error:", err.stack);
+  res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "https://aiclothify.vercel.app");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
   if (err.code === "EBADCSRFTOKEN") {
     return res.status(403).json({
       message: "Invalid CSRF token",
       action: "Please refresh the page and try again",
-    });
-  }
-  
-  if (err.message === 'Not allowed by CORS') {
-    return res.status(403).json({ 
-      message: 'CORS error: Request not allowed',
-      details: 'The request was blocked due to CORS policy'
     });
   }
   

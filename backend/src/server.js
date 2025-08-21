@@ -30,7 +30,7 @@ if (missingEnvVars.length > 0) {
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const __dirname = path.resolve();
+const __dirname = path.resolve(); 
 
 const corsOptions = {
   origin: ["https://aiclothify.vercel.app", "http://localhost:5173"],

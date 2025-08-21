@@ -32,23 +32,46 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const __dirname = path.resolve();
 
-app.use(
-  cors({
-    origin: [
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
       ...(process.env.FRONTEND_URL || "http://localhost:5173").split(","),
       "https://*.ngrok.io",
-    ],
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: [
-      "Content-Type",
-      "X-CSRF-Token",
-      "Authorization",
-      "Access-Control-Allow-Origin",
-    ],
-    exposedHeaders: ["set-cookie"],
-  })
-);
+      "https://aiclothify.vercel.app",
+      "https://aiclothify.vercel.app/",
+      "https://*.vercel.app"
+    ];
+    
+    if (allowedOrigins.some(allowedOrigin => {
+      // Handle wildcard origins
+      if (allowedOrigin.includes('*')) {
+        const regex = new RegExp(allowedOrigin.replace('*', '.*'));
+        return regex.test(origin);
+      }
+      return origin === allowedOrigin;
+    })) {
+      callback(null, true);
+    } else {
+      console.log('Origin not allowed:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "X-CSRF-Token",
+    "Authorization",
+    "Access-Control-Allow-Origin",
+    "X-Requested-With"
+  ],
+  exposedHeaders: ["set-cookie"]
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); 
 
 app.use(
   helmet({
@@ -63,21 +86,28 @@ app.use(
           ...(process.env.FRONTEND_URL || "http://localhost:5173").split(","),
           "https://api.dicebear.com",
           "https://*.ngrok.io",
+          "https://aiclothify.vercel.app"
         ],
       },
     },
+    crossOriginResourcePolicy: { policy: "cross-origin" }
   })
 );
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Private-Network", "true");
+  const origin = req.headers.origin;
+  if (origin && (origin.includes('vercel.app') || origin.includes('localhost'))) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
   next();
 });
 
 app.use(morgan("dev"));
 app.use(compression());
 app.use(cookieParser());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use(
   session({
@@ -159,6 +189,14 @@ app.use((err, req, res, next) => {
       action: "Please refresh the page and try again",
     });
   }
+  
+  if (err.message === 'Not allowed by CORS') {
+    return res.status(403).json({ 
+      message: 'CORS error: Request not allowed',
+      details: 'The request was blocked due to CORS policy'
+    });
+  }
+  
   res
     .status(500)
     .json({ message: "Internal Server Error", error: err.message });
@@ -171,6 +209,7 @@ async function startServer() {
 
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Server running on http://0.0.0.0:${PORT}`);
+      console.log(`CORS enabled for: ${process.env.FRONTEND_URL || "http://localhost:5173"}, https://aiclothify.vercel.app`);
       if (process.env.NODE_ENV === "development") {
         console.log(
           `Frontend: ${process.env.FRONTEND_URL || "http://localhost:5173"}`

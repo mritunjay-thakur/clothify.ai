@@ -30,18 +30,25 @@ if (missingEnvVars.length > 0) {
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const __dirname = path.resolve(); 
+const __dirname = path.resolve();
 
-const corsOptions = {
-  origin: ["https://aiclothify.vercel.app", "http://localhost:5173"],
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "X-CSRF-Token", "Authorization", "X-Requested-With"],
-  exposedHeaders: ["set-cookie"]
-};
-
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+app.use(
+  cors({
+    origin: [
+      ...(process.env.FRONTEND_URL || "http://localhost:5173").split(","),
+      "https://*.ngrok.io",
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "X-CSRF-Token",
+      "Authorization",
+      "Access-Control-Allow-Origin",
+    ],
+    exposedHeaders: ["set-cookie"],
+  })
+);
 
 app.use(
   helmet({
@@ -55,19 +62,22 @@ app.use(
           "'self'",
           ...(process.env.FRONTEND_URL || "http://localhost:5173").split(","),
           "https://api.dicebear.com",
-          "https://aiclothify.vercel.app"
+          "https://*.ngrok.io",
         ],
       },
     },
-    crossOriginResourcePolicy: { policy: "cross-origin" }
   })
 );
+
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Private-Network", "true");
+  next();
+});
 
 app.use(morgan("dev"));
 app.use(compression());
 app.use(cookieParser());
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json());
 
 app.use(
   session({
@@ -106,7 +116,6 @@ app.use((req, res, next) => {
 });
 
 app.get("/api/csrf-token", (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "https://aiclothify.vercel.app");
   res.json({ csrfToken: req.csrfToken() });
 });
 
@@ -144,15 +153,12 @@ if (process.env.NODE_ENV === "production") {
 
 app.use((err, req, res, next) => {
   console.error("Error:", err.stack);
-  res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "https://aiclothify.vercel.app");
-  res.setHeader("Access-Control-Allow-Credentials", "true");
   if (err.code === "EBADCSRFTOKEN") {
     return res.status(403).json({
       message: "Invalid CSRF token",
       action: "Please refresh the page and try again",
     });
   }
-  
   res
     .status(500)
     .json({ message: "Internal Server Error", error: err.message });
@@ -165,7 +171,6 @@ async function startServer() {
 
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Server running on http://0.0.0.0:${PORT}`);
-      console.log(`CORS enabled for: ${process.env.FRONTEND_URL || "http://localhost:5173"}, https://aiclothify.vercel.app`);
       if (process.env.NODE_ENV === "development") {
         console.log(
           `Frontend: ${process.env.FRONTEND_URL || "http://localhost:5173"}`

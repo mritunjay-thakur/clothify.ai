@@ -68,29 +68,29 @@ const SignUpPage = () => {
         newErrors.fullName = !value
           ? "Full name required"
           : !/^[a-zA-Z ]{2,30}$/.test(value)
-            ? "Invalid name"
-            : "";
+          ? "Invalid name"
+          : "";
         break;
       case "email":
         newErrors.email = !value
           ? "Email required"
           : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-            ? "Invalid email"
-            : "";
+          ? "Invalid email"
+          : "";
         break;
       case "password":
         newErrors.password = !value
           ? "Password required"
           : value.length < 6
-            ? "Minimum 6 characters"
-            : "";
+          ? "Minimum 6 characters"
+          : "";
         break;
       case "confirmPassword":
         newErrors.confirmPassword = !value
           ? "Confirm password"
           : value !== formData.password
-            ? "Passwords don't match"
-            : "";
+          ? "Passwords don't match"
+          : "";
         break;
     }
     if (!newErrors[name]) delete newErrors[name];
@@ -125,14 +125,14 @@ const SignUpPage = () => {
         err.message.includes("already exists")
           ? "Email already registered"
           : err.message.includes("Invalid email")
-            ? "Please enter a valid email address"
-            : "Registration failed. Please try again."
+          ? "Please enter a valid email address"
+          : "Registration failed. Please try again."
       );
     }
   };
   const handleGoogleAuth = () => {
     setGoogleLoading(true);
-    const baseUrl = "http://localhost:3000/api";
+    const baseUrl = process.env.VITE_API_BASE_URL;
     window.location.href = `${baseUrl}/auth/google?mobile=${isMobile}`;
   };
 

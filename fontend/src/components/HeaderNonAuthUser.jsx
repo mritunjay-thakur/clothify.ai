@@ -9,6 +9,7 @@ import {
   HelpCircle,
   Settings,
   Code,
+  Heart,
 } from "lucide-react";
 import { useLocation, Link } from "react-router-dom";
 import GlassSurface from "../../jsrepo/GlassSurface/GlassSurface";
@@ -25,7 +26,7 @@ const navLinks = {
   ],
 };
 
-const supportLink = { path: "/support", label: "Support", icon: HelpCircle };
+const supportLink = { path: "/support", label: "Support", icon: Heart };
 
 const Header = ({ isAuthenticated = false }) => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -82,9 +83,7 @@ const Header = ({ isAuthenticated = false }) => {
         >
           <Link to="/" className="flex items-center gap-3 group/logo">
             <div className="relative">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center group-hover/logo:scale-110 transition-transform duration-300">
-                <Sparkles className="w-6 h-6 text-white" />
-              </div>
+              <Sparkles className="w-6 h-6 text-white" />
               <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl opacity-0 group-hover/logo:opacity-30 blur-lg transition-opacity duration-300" />
             </div>
             <div className="flex flex-col">
@@ -104,8 +103,9 @@ const Header = ({ isAuthenticated = false }) => {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`group/nav flex items-center gap-2 px-4 py-2.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all duration-300 font-medium text-sm ${path === link.path ? "bg-white/10 text-white" : ""
-                    }`}
+                  className={`group/nav flex items-center gap-2 px-4 py-2.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all duration-300 font-medium text-sm ${
+                    path === link.path ? "bg-white/10 text-white" : ""
+                  }`}
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <IconComponent className="w-4 h-4 group-hover/nav:scale-110 transition-transform duration-200" />
@@ -122,12 +122,14 @@ const Header = ({ isAuthenticated = false }) => {
           >
             <div className="relative w-5 h-5">
               <Menu
-                className={`absolute inset-0 w-5 h-5 transition-all duration-300 ${menuOpen ? "rotate-180 opacity-0" : "rotate-0 opacity-100"
-                  }`}
+                className={`absolute inset-0 w-5 h-5 transition-all duration-300 ${
+                  menuOpen ? "rotate-180 opacity-0" : "rotate-0 opacity-100"
+                }`}
               />
               <X
-                className={`absolute inset-0 w-5 h-5 transition-all duration-300 ${menuOpen ? "rotate-0 opacity-100" : "-rotate-180 opacity-0"
-                  }`}
+                className={`absolute inset-0 w-5 h-5 transition-all duration-300 ${
+                  menuOpen ? "rotate-0 opacity-100" : "-rotate-180 opacity-0"
+                }`}
               />
             </div>
             <div className="absolute inset-0 rounded-xl bg-white opacity-0 group-hover/menu:opacity-10 transition-opacity duration-300" />
@@ -136,10 +138,11 @@ const Header = ({ isAuthenticated = false }) => {
       </GlassSurface>
 
       <div
-        className={`md:hidden absolute left-4 right-4 mt-2 transition-all duration-300 origin-top ${menuOpen
-          ? "opacity-100 scale-100 translate-y-0"
-          : "opacity-0 scale-95 -translate-y-4 pointer-events-none"
-          }`}
+        className={`md:hidden absolute left-4 right-4 mt-2 transition-all duration-300 origin-top ${
+          menuOpen
+            ? "opacity-100 scale-100 translate-y-0"
+            : "opacity-0 scale-95 -translate-y-4 pointer-events-none"
+        }`}
       >
         <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-2 shadow-2xl shadow-purple-500/20">
           <div className="space-y-1">
@@ -150,8 +153,9 @@ const Header = ({ isAuthenticated = false }) => {
                   key={link.path}
                   to={link.path}
                   onClick={() => setMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all duration-300 font-medium ${path === link.path ? "bg-white/10 text-white" : ""
-                    }`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all duration-300 font-medium ${
+                    path === link.path ? "bg-white/10 text-white" : ""
+                  }`}
                   style={{
                     animationDelay: `${index * 50}ms`,
                     animation: menuOpen

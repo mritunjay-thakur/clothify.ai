@@ -16,13 +16,6 @@ export default defineConfig({
       port: 5173,
     },
 
-    proxy: {
-      "/api": {
-        target: "https://clothify-ai-3.onrender.com",
-        changeOrigin: true,
-        secure: false,
-      },
-    },
   },
   preview: {
     port: 5173,
@@ -32,6 +25,7 @@ export default defineConfig({
   build: {
     outDir: "dist",
     sourcemap: false,
+    target: "esnext",
     chunkSizeWarningLimit: 1600,
     rollupOptions: {
       output: {

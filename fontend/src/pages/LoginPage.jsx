@@ -61,16 +61,16 @@ const LoginPage = () => {
         newErrors.email = !value
           ? "Email is required"
           : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-            ? "Invalid email"
-            : "";
+          ? "Invalid email"
+          : "";
         if (!newErrors.email) delete newErrors.email;
         break;
       case "password":
         newErrors.password = !value
           ? "Password is required"
           : value.length < 6
-            ? "Minimum 6 characters"
-            : "";
+          ? "Minimum 6 characters"
+          : "";
         if (!newErrors.password) delete newErrors.password;
         break;
     }
@@ -95,15 +95,15 @@ const LoginPage = () => {
         err.message.includes("Invalid credentials")
           ? "Invalid email or password"
           : err.message.includes("not verified")
-            ? "Verify your email first"
-            : "Login failed. Please try again."
+          ? "Verify your email first"
+          : "Login failed. Please try again."
       );
     }
   };
 
   const handleGoogleAuth = () => {
     setGoogleLoading(true);
-    const baseUrl = "http://localhost:3000/api";
+    const baseUrl = process.env.VITE_API_BASE_URL;
     window.location.href = `${baseUrl}/auth/google?mobile=${isMobile}`;
   };
 

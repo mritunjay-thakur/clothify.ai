@@ -1,23 +1,22 @@
-
-import React, { useEffect } from 'react';
+import React, { useEffect } from "react";
 
 const GlowButton = ({
   text = "Let's Start, Shall we?",
   onClick,
-  className = '',
-  style = {}
+  className = "",
+  style = {},
 }) => {
   useEffect(() => {
-    if (!document.getElementById('glow-button-styles')) {
-      const styleTag = document.createElement('style');
-      styleTag.id = 'glow-button-styles';
+    if (!document.getElementById("glow-button-styles")) {
+      const styleTag = document.createElement("style");
+      styleTag.id = "glow-button-styles";
       styleTag.innerHTML = `
         .glow-on-hover {
           width: 260px;
           height: 60px;
           border: none;
           outline: none;
-          color: rgb(202, 81, 250);
+          color: rgb(94, 0, 166);
           background: #000000;
           cursor: pointer;
           position: relative;
@@ -89,7 +88,8 @@ const GlowButton = ({
   return (
     <button
       className={`glow-on-hover hero ${className}`}
-      onClick={onClick} z
+      onClick={onClick}
+      z
       style={style}
     >
       {text}

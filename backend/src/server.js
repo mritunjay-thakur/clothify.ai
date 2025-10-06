@@ -12,7 +12,6 @@ import compression from "compression";
 import morgan from "morgan";
 
 import "./config/passport.js";
-import supportRouter from "./routes/support.route.js";
 import authRoutes from "./routes/auth.route.js";
 import chatRoutes from "./routes/chat.route.js";
 import aiRoutes from "./routes/ai.route.js";
@@ -20,7 +19,6 @@ import conversationRoutes from "./routes/conversation.route.js";
 import messageRouter from "./routes/message.route.js";
 import { connectDB } from "./lib/db.js";
 
-// Check env vars
 const requiredEnvVars = ["JWT_SECRET_KEY", "FRONTEND_URL"];
 const missingEnvVars = requiredEnvVars.filter(
   (varName) => !process.env[varName]
@@ -34,7 +32,6 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const __dirname = path.resolve();
 
-// ---------- CORS ----------
 app.use(
   cors({
     origin: [
@@ -42,21 +39,14 @@ app.use(
       "https://*.ngrok.io",
     ],
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: [
-      "Content-Type",
-      "X-CSRF-Token",
-      "Authorization",
-      "Access-Control-Allow-Origin",
-    ],
-    exposedHeaders: ["set-cookie"],
   })
 );
 
-// ---------- Security ----------
 app.use(
   helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginResourcePolicy: {
+      policy: "cross-origin",
+    },
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
@@ -72,61 +62,39 @@ app.use(
   })
 );
 
-// Private network header
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Private-Network", "true");
-  next();
-});
-
-// ---------- Middleware ----------
 app.use(morgan("dev"));
 app.use(compression());
 app.use(cookieParser());
 app.use(express.json());
 
-// ---------- Sessions ----------
 app.use(
   session({
     secret: process.env.JWT_SECRET_KEY,
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production", // HTTPS only in prod
+      secure: process.env.NODE_ENV === "production",
       httpOnly: true,
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     },
   })
 );
 
-// ---------- Passport ----------
 app.use(passport.initialize());
 app.use(passport.session());
 
-// ---------- CSRF ----------
 const csrfProtection = csrf({ cookie: true });
 
-// Skip CSRF for auth routes (login/logout)
-app.use((req, res, next) => {
-  if (req.path.startsWith("/api/auth")) {
-    return next();
-  }
-  return csrfProtection(req, res, next);
-});
-
-// ---------- Routes ----------
 app.use("/api/auth", authRoutes);
-app.use("/api/support", supportRouter);
 app.use("/api/chat", chatRoutes);
 app.use("/api/ai", aiRoutes);
-app.use("/api/conversation", conversationRoutes);
+app.use("/api", conversationRoutes);
 app.use("/api/messages", messageRouter);
 
-// Endpoint to fetch CSRF token
 app.get("/api/csrf-token", csrfProtection, (req, res) => {
   res.json({ csrfToken: req.csrfToken() });
 });
 
-// ---------- Error Handling ----------
 app.use((err, req, res, next) => {
   if (err.code === "EBADCSRFTOKEN") {
     return res.status(403).json({
@@ -139,7 +107,6 @@ app.use((err, req, res, next) => {
     .json({ message: "Internal Server Error", error: err.message });
 });
 
-// ---------- Start Server ----------
 async function startServer() {
   try {
     await connectDB();

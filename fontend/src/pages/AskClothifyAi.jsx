@@ -390,10 +390,10 @@ const ClothifyAI = () => {
           >
             <div className="flex items-center justify-between p-6 border-b border-gray-200/50">
               <div className="flex items-center space-x-3">
-                <div className="w-11 h-11 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                <div className="w-11 h-11 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 rounded-full flex items-center justify-center">
                   <Sparkles className="w-6 h-6 text-white" />
                 </div>
-                <span className="text-2xl font-bold bg-purple-800 bg-clip-text text-transparent">
+                <span className="text-2xl font-bold bg-purple-600 bg-clip-text text-transparent">
                   Clothify
                 </span>
               </div>
@@ -616,7 +616,7 @@ const ClothifyAI = () => {
                 <Menu className="w-6 h-6" />
               </button>
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 rounded-lg flex items-center justify-center">
                   <Sparkles className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
@@ -659,7 +659,7 @@ const ClothifyAI = () => {
                 transition={{ delay: 0.2 }}
                 className="max-w-2xl"
               >
-                <h1 className="text-4xl font-bold text-purple-800 bg-clip-text mb-4">
+                <h1 className="text-4xl font-bold text-purple-700 bg-clip-text mb-4">
                   Hey! I'm Taara ✨
                 </h1>
                 <p className="text-lg text-gray-600 mb-8 leading-relaxed">
@@ -736,7 +736,7 @@ const ClothifyAI = () => {
                             "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
                             message.role === "user"
                               ? "bg-purple-500"
-                              : "bg-gradient-to-br from-purple-500 to-pink-500"
+                              : "bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400"
                           )}
                         >
                           {message.role === "user" ? (
@@ -820,7 +820,7 @@ const ClothifyAI = () => {
                 >
                   <div className="max-w-3xl flex items-start space-x-3">
                     {!isSmallScreen && (
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 flex items-center justify-center">
                         <Sparkles className="w-4 h-4 text-white" />
                       </div>
                     )}

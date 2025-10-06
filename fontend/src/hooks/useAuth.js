@@ -69,7 +69,6 @@ export const useAuth = () => {
 
   const checkAuth = useCallback(
     async (force = false) => {
-      st;
       const cachedAuth = authCache.get();
       if (cachedAuth && !force) {
         setAuthUser(cachedAuth.authUser);
@@ -125,7 +124,6 @@ export const useAuth = () => {
   );
 
   useEffect(() => {
-    unt;
     const cachedAuth = authCache.get();
     if (cachedAuth) {
       setAuthUser(cachedAuth.authUser);

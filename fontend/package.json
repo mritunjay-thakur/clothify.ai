@@ -60,5 +60,8 @@
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.17",
     "vite": "^5.4.8"
+  },
+  "resolutions": {
+    "@rollup/rollup-linux-x64-gnu": "npm:@rollup/rollup"
   }
 }

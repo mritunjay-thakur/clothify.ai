@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import Silk from "../../jsrepo/Silk/Silk";
@@ -7,14 +7,12 @@ import ErrorMessage from "../components/ErrorMessage";
 import FormInput from "../components/FormInput";
 import PasswordInput from "../components/PasswordInput";
 import HeaderNonAuthUser from "../components/HeaderNonAuthUser";
-import OTPInput from "../components/OTPInput";
 
 const CompleteEditProfile = () => {
-  const COUNTDOWN_SECONDS = 120;
   const navigate = useNavigate();
   const {
     authUser,
-    completeEditProfile,
+    editProfile,
     loading: authLoading,
     error: authError,
     logout,
@@ -28,36 +26,17 @@ const CompleteEditProfile = () => {
     confirmPassword: "",
     deleteConfirm: false,
   });
-  const timerRef = useRef(null);
   const [currentEmail, setCurrentEmail] = useState("");
-  const [otp, setOtp] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpCountdown, setOtpCountdown] = useState(0);
-  const [actionContext, setActionContext] = useState("");
   const [localError, setLocalError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userId, setUserId] = useState(null);
-  const [formHidden, setFormHidden] = useState(false);
-  const [otpRequestInProgress, setOtpRequestInProgress] = useState(false);
 
   const error = authError || localError;
-  const otpInputRef = useRef(null);
-
-  useEffect(() => {
-    return () => {
-      resetTempStates();
-    };
-  }, []);
-
-  const handleBackToProfile = () => {
-    resetTempStates();
-    setActiveSection(null);
-  };
 
   useEffect(() => {
     if (authUser) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         fullName: authUser.name || authUser.fullName || "",
         email: authUser.email || "",
@@ -67,63 +46,21 @@ const CompleteEditProfile = () => {
     }
   }, [authUser]);
 
-
-  useEffect(() => {
-    if (otpSent && otpInputRef.current) {
-      setTimeout(() => {
-        otpInputRef.current.focus();
-      }, 100);
-    }
-  }, [otpSent]);
-
-
-  useEffect(() => {
-    if (otpCountdown <= 0) return;
-
-    timerRef.current = setTimeout(() => {
-      setOtpCountdown(s => s - 1);
-    }, 1000);
-
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-        timerRef.current = null;
-      }
-    };
-  }, [otpCountdown]);
-
   useEffect(() => {
     setLocalError(null);
     setSuccessMessage(null);
   }, [formData]);
 
-  const resetTempStates = () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-
-    setOtp("");
-    setOtpSent(false);
-    setOtpCountdown(0);
-    setLocalError(null);
-    setSuccessMessage(null);
-    setActionContext("");
-    setFormHidden(false);
-    setOtpRequestInProgress(false);
+  const handleBackToProfile = () => {
+    setActiveSection(null);
   };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     }));
-  };
-
-  const handleOtpChange = (e) => {
-    setOtp(e.target.value);
-    setLocalError(null);
   };
 
   const validateName = () => {
@@ -133,7 +70,9 @@ const CompleteEditProfile = () => {
       return false;
     }
     if (!nameRegex.test(formData.fullName.trim())) {
-      setLocalError("Name must be 2-30 characters and contain only letters and spaces");
+      setLocalError(
+        "Name must be 2-30 characters and contain only letters and spaces"
+      );
       return false;
     }
     return true;
@@ -180,62 +119,6 @@ const CompleteEditProfile = () => {
     return true;
   };
 
-  const sendOtp = async (context) => {
-    if (otpRequestInProgress || otpCountdown > 0 || isSubmitting) return;
-
-    setOtpRequestInProgress(true);
-    setActionContext(context);
-    setIsSubmitting(true);
-    setLocalError(null);
-
-    try {
-      let payload = {};
-
-      if (context === "email-change") {
-        if (!validateEmail()) {
-          setOtpRequestInProgress(false);
-          setIsSubmitting(false);
-          return;
-        }
-        payload = { newEmail: formData.email.trim() };
-      } else if (context === "password-change") {
-        if (!validatePasswordChange()) {
-          setOtpRequestInProgress(false);
-          setIsSubmitting(false);
-          return;
-        }
-        payload = { newPassword: formData.newPassword };
-      } else if (context === "account-deletion") {
-        if (!validateDelete()) {
-          setOtpRequestInProgress(false);
-          setIsSubmitting(false);
-          return;
-        }
-        payload = { deleteAccount: true };
-      }
-
-      const response = await completeEditProfile(payload);
-
-      if (response?.success) {
-        setOtpSent(true);
-        setFormHidden(true);
-        setOtpCountdown(COUNTDOWN_SECONDS);
-        setSuccessMessage("Verification code sent to your email!");
-      }
-    } catch (err) {
-      console.error("OTP request failed:", err);
-      setLocalError(err.message);
-
-      const waitMatch = err.message.match(/wait (\d+) seconds/);
-      if (waitMatch) {
-        setOtpCountdown(parseInt(waitMatch[1]));
-      }
-    } finally {
-      setIsSubmitting(false);
-      setOtpRequestInProgress(false);
-    }
-  };
-
   const handleNameSubmit = async (e) => {
     e.preventDefault();
     if (!validateName() || isSubmitting) return;
@@ -245,8 +128,8 @@ const CompleteEditProfile = () => {
     setSuccessMessage(null);
 
     try {
-      const response = await completeEditProfile({
-        newName: formData.fullName.trim()
+      const response = await editProfile({
+        newName: formData.fullName.trim(),
       });
 
       if (response?.success) {
@@ -270,27 +153,18 @@ const CompleteEditProfile = () => {
     e.preventDefault();
     if (!validateEmail() || isSubmitting) return;
 
-    if (!otp || otp.length !== 6) {
-      setLocalError("Please enter a valid 6-digit verification code");
-      return;
-    }
-
     setIsSubmitting(true);
     setLocalError(null);
     setSuccessMessage(null);
 
     try {
-      const response = await completeEditProfile({
+      const response = await editProfile({
         newEmail: formData.email.trim(),
-        otp: otp.trim(),
       });
 
       if (response?.success) {
         setSuccessMessage("Email updated successfully!");
         setCurrentEmail(formData.email.trim());
-        setOtp("");
-        setOtpSent(false);
-        setFormHidden(false);
         setTimeout(() => {
           setActiveSection(null);
           setSuccessMessage(null);
@@ -310,31 +184,22 @@ const CompleteEditProfile = () => {
     e.preventDefault();
     if (!validatePasswordChange() || isSubmitting) return;
 
-    if (!otp || otp.length !== 6) {
-      setLocalError("Please enter a valid 6-digit verification code");
-      return;
-    }
-
     setIsSubmitting(true);
     setLocalError(null);
     setSuccessMessage(null);
 
     try {
-      const response = await completeEditProfile({
+      const response = await editProfile({
         newPassword: formData.newPassword,
-        otp: otp.trim(),
       });
 
       if (response?.success) {
         setSuccessMessage("Password updated successfully!");
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
           newPassword: "",
-          confirmPassword: ""
+          confirmPassword: "",
         }));
-        setOtp("");
-        setOtpSent(false);
-        setFormHidden(false);
         setTimeout(() => {
           setActiveSection(null);
           setSuccessMessage(null);
@@ -354,19 +219,13 @@ const CompleteEditProfile = () => {
     e.preventDefault();
     if (!validateDelete() || isSubmitting) return;
 
-    if (!otp || otp.length !== 6) {
-      setLocalError("Please enter a valid 6-digit verification code");
-      return;
-    }
-
     setIsSubmitting(true);
     setLocalError(null);
     setSuccessMessage(null);
 
     try {
-      const response = await completeEditProfile({
+      const response = await editProfile({
         deleteAccount: true,
-        otp: otp.trim(),
       });
 
       if (response?.success) {
@@ -388,8 +247,19 @@ const CompleteEditProfile = () => {
     <div className="space-y-6">
       <div className="mb-6 p-4 bg-black/20 rounded-lg border border-white/10">
         <h3 className="text-lg font-semibold mb-3 flex items-center">
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          <svg
+            className="w-5 h-5 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+            />
           </svg>
           Your Profile
         </h3>
@@ -437,8 +307,19 @@ const CompleteEditProfile = () => {
           className="bg-indigo-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-indigo-600 transition-all duration-200 text-sm sm:text-base flex items-center justify-center"
           aria-label="Change email"
         >
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          <svg
+            className="w-4 h-4 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+            />
           </svg>
           Change Email
         </button>
@@ -448,8 +329,19 @@ const CompleteEditProfile = () => {
           className="bg-emerald-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-emerald-600 transition-all duration-200 text-sm sm:text-base flex items-center justify-center"
           aria-label="Change password"
         >
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          <svg
+            className="w-4 h-4 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+            />
           </svg>
           Change Password
         </button>
@@ -459,8 +351,19 @@ const CompleteEditProfile = () => {
           className="bg-rose-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-rose-700 transition-all duration-200 text-sm sm:text-base flex items-center justify-center"
           aria-label="Delete account"
         >
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          <svg
+            className="w-4 h-4 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+            />
           </svg>
           Delete Account
         </button>
@@ -503,250 +406,122 @@ const CompleteEditProfile = () => {
 
   const renderEmailChange = () => (
     <form onSubmit={handleEmailSubmit} className="space-y-5">
-      {!formHidden && (
-        <>
-          <FormInput
-            label="New Email"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="name@example.com"
-            required
-            disabled={isSubmitting}
-          />
-          <p className="text-md text-white">
-            Note: Verification code will be sent to your NEW email address ({formData.email})
-          </p>
-        </>
-      )}
+      <FormInput
+        label="New Email"
+        name="email"
+        type="email"
+        value={formData.email}
+        onChange={handleChange}
+        placeholder="name@example.com"
+        required
+        disabled={isSubmitting}
+      />
 
-      <div className="space-y-3">
-        {otpSent && (
-          <>
-            <p className="text-md text-white mb-2">
-              Verification code sent to {formData.email}
-            </p>
-            <OTPInput
-              ref={otpInputRef}
-              value={otp}
-              onChange={handleOtpChange}
-              error={error}
-              disabled={isSubmitting}
-              length={6}
-            />
-          </>
-        )}
-
+      <div className="flex gap-3">
         <button
           type="button"
-          onClick={() => sendOtp("email-change")}
-          disabled={isSubmitting || otpCountdown > 0 || (formHidden && !otpSent) || !formData.email.trim() || otpRequestInProgress}
-          className="w-full bg-indigo-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-indigo-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
-          aria-label={formHidden ? "Resend verification code" : "Send verification code"}
+          onClick={handleBackToProfile}
+          disabled={isSubmitting}
+          className="flex-1 bg-transparent border border-white/30 py-3 px-4 rounded-lg font-medium hover:bg-white/10 transition-all duration-200 text-sm sm:text-base disabled:opacity-50"
         >
-          {otpRequestInProgress
-            ? "Sending..."
-            : otpCountdown > 0
-              ? `Resend in ${otpCountdown}s`
-              : formHidden ? "Resend Code" : "Send Verification Code"}
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={isSubmitting || !formData.email.trim()}
+          className="flex-1 bg-indigo-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-indigo-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base shadow-lg"
+          aria-label={isSubmitting ? "Updating email" : "Update email"}
+        >
+          {isSubmitting ? "Updating..." : "Update Email"}
         </button>
       </div>
-
-      {otpSent && (
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => {
-              setOtpSent(false);
-              setOtp("");
-              setOtpCountdown(0);
-              setFormHidden(false);
-            }}
-            disabled={isSubmitting}
-            className="flex-1 bg-transparent border border-white/30 py-3 px-4 rounded-lg font-medium hover:bg-white/10 transition-all duration-200 text-sm sm:text-base disabled:opacity-50"
-          >
-            Back
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting || !otp || otp.length !== 6}
-            className="flex-1 bg-indigo-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-indigo-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base shadow-lg"
-            aria-label={isSubmitting ? "Updating email" : "Update email"}
-          >
-            {isSubmitting ? "Updating..." : "Confirm & Update Email"}
-          </button>
-        </div>
-      )}
     </form>
   );
 
   const renderPasswordChange = () => (
     <form onSubmit={handlePasswordSubmit} className="space-y-5">
-      {!formHidden && (
-        <>
-          <PasswordInput
-            label="New Password"
-            name="newPassword"
-            value={formData.newPassword}
-            onChange={handleChange}
-            placeholder="Enter a strong password"
-            required
-            disabled={isSubmitting}
-          />
-          <PasswordInput
-            label="Confirm New Password"
-            name="confirmPassword"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            placeholder="Re-enter your password"
-            required
-            disabled={isSubmitting}
-          />
-        </>
-      )}
+      <PasswordInput
+        label="New Password"
+        name="newPassword"
+        value={formData.newPassword}
+        onChange={handleChange}
+        placeholder="Enter a strong password"
+        required
+        disabled={isSubmitting}
+      />
+      <PasswordInput
+        label="Confirm New Password"
+        name="confirmPassword"
+        value={formData.confirmPassword}
+        onChange={handleChange}
+        placeholder="Re-enter your password"
+        required
+        disabled={isSubmitting}
+      />
 
-      <div className="space-y-3">
-        {otpSent && (
-          <>
-            <p className="text-md text-white mb-2">
-              Verification code sent to {formData.email || currentEmail}
-            </p>
-            <OTPInput
-              ref={otpInputRef}
-              value={otp}
-              onChange={handleOtpChange}
-              error={error}
-              disabled={isSubmitting}
-              length={6}
-            />
-          </>
-        )}
-
+      <div className="flex gap-3">
         <button
           type="button"
-          onClick={() => sendOtp("password-change")}
-          disabled={isSubmitting || otpCountdown > 0 || (formHidden && !otpSent) || !formData.newPassword || !formData.confirmPassword || otpRequestInProgress}
-          className="w-full bg-emerald-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-emerald-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
-          aria-label={formHidden ? "Resend verification code" : "Send verification code"}
+          onClick={handleBackToProfile}
+          disabled={isSubmitting}
+          className="flex-1 bg-transparent border border-white/30 py-3 px-4 rounded-lg font-medium hover:bg-white/10 transition-all duration-200 text-sm sm:text-base disabled:opacity-50"
         >
-          {otpRequestInProgress
-            ? "Sending..."
-            : otpCountdown > 0
-              ? `Resend in ${otpCountdown}s`
-              : formHidden ? "Resend Code" : "Send Verification Code"}
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={
+            isSubmitting || !formData.newPassword || !formData.confirmPassword
+          }
+          className="flex-1 bg-emerald-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-emerald-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base shadow-lg"
+          aria-label={isSubmitting ? "Updating password" : "Update password"}
+        >
+          {isSubmitting ? "Updating..." : "Update Password"}
         </button>
       </div>
-
-      {otpSent && (
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => {
-              setOtpSent(false);
-              setOtp("");
-              setOtpCountdown(0);
-              setFormHidden(false);
-            }}
-            disabled={isSubmitting}
-            className="flex-1 bg-transparent border border-white/30 py-3 px-4 rounded-lg font-medium hover:bg-white/10 transition-all duration-200 text-sm sm:text-base disabled:opacity-50"
-          >
-            Back
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting || !otp || otp.length !== 6}
-            className="flex-1 bg-emerald-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-emerald-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base shadow-lg"
-            aria-label={isSubmitting ? "Updating password" : "Update password"}
-          >
-            {isSubmitting ? "Updating..." : "Confirm & Update Password"}
-          </button>
-        </div>
-      )}
     </form>
   );
 
   const renderDeleteAccount = () => (
     <form onSubmit={handleDeleteSubmit} className="space-y-5">
-      {!formHidden && (
-        <>
-          <div className="p-4 rounded-lg border border-rose-500/40 bg-rose-500/10 text-rose-300 text-sm">
-            ⚠️ This action is permanent and cannot be undone. All your data will be permanently deleted.
-          </div>
-
-          <label className="flex items-start gap-3 text-sm cursor-pointer">
-            <input
-              type="checkbox"
-              name="deleteConfirm"
-              checked={formData.deleteConfirm}
-              onChange={handleChange}
-              disabled={isSubmitting}
-              className="mt-0.5 h-4 w-4 rounded border-gray-300 text-rose-600 focus:ring-rose-500 disabled:opacity-50"
-            />
-            <span className="text-white/90">
-              I understand this action is permanent and I want to delete my account along with all associated data.
-            </span>
-          </label>
-        </>
-      )}
-
-      <div className="space-y-3">
-        {otpSent && (
-          <>
-            <p className="text-md text-white mb-2">
-              Verification code sent to {currentEmail}
-            </p>
-            <OTPInput
-              ref={otpInputRef}
-              value={otp}
-              onChange={handleOtpChange}
-              error={error}
-              disabled={isSubmitting}
-              length={6}
-            />
-          </>
-        )}
-
-        <button
-          type="button"
-          onClick={() => sendOtp("account-deletion")}
-          disabled={isSubmitting || otpCountdown > 0 || (formHidden && !otpSent) || !formData.deleteConfirm || otpRequestInProgress}
-          className="w-full bg-rose-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-rose-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
-          aria-label={formHidden ? "Resend verification code" : "Send verification code"}
-        >
-          {otpRequestInProgress
-            ? "Sending..."
-            : otpCountdown > 0
-              ? `Resend in ${otpCountdown}s`
-              : formHidden ? "Resend Code" : "Send Verification Code"}
-        </button>
+      <div className="p-4 rounded-lg border border-rose-500/40 bg-rose-500/10 text-rose-300 text-sm">
+        ⚠️ This action is permanent and cannot be undone. All your data will be
+        permanently deleted.
       </div>
 
-      {otpSent && (
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => {
-              setOtpSent(false);
-              setOtp("");
-              setOtpCountdown(0);
-              setFormHidden(false);
-            }}
-            disabled={isSubmitting}
-            className="flex-1 bg-transparent border border-white/30 py-3 px-4 rounded-lg font-medium hover:bg-white/10 transition-all duration-200 text-sm sm:text-base disabled:opacity-50"
-          >
-            Back
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting || !otp || otp.length !== 6 || !formData.deleteConfirm}
-            className="flex-1 bg-rose-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-rose-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base shadow-lg"
-            aria-label={isSubmitting ? "Deleting account" : "Delete account"}
-          >
-            {isSubmitting ? "Deleting..." : "Permanently Delete Account"}
-          </button>
-        </div>
-      )}
+      <label className="flex items-start gap-3 text-sm cursor-pointer">
+        <input
+          type="checkbox"
+          name="deleteConfirm"
+          checked={formData.deleteConfirm}
+          onChange={handleChange}
+          disabled={isSubmitting}
+          className="mt-0.5 h-4 w-4 rounded border-gray-300 text-rose-600 focus:ring-rose-500 disabled:opacity-50"
+        />
+        <span className="text-white/90">
+          I understand this action is permanent and I want to delete my account
+          along with all associated data.
+        </span>
+      </label>
+
+      <div className="flex gap-3">
+        <button
+          type="button"
+          onClick={handleBackToProfile}
+          disabled={isSubmitting}
+          className="flex-1 bg-transparent border border-white/30 py-3 px-4 rounded-lg font-medium hover:bg-white/10 transition-all duration-200 text-sm sm:text-base disabled:opacity-50"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={isSubmitting || !formData.deleteConfirm}
+          className="flex-1 bg-rose-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-rose-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base shadow-lg"
+          aria-label={isSubmitting ? "Deleting account" : "Delete account"}
+        >
+          {isSubmitting ? "Deleting..." : "Permanently Delete Account"}
+        </button>
+      </div>
     </form>
   );
 
@@ -779,7 +554,14 @@ const CompleteEditProfile = () => {
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center bg-black overflow-hidden text-white px-4">
       <div className="absolute inset-0 z-0">
-        <Silk speed={5} scale={1} color="#2ECC71" noiseIntensity={1} rotation={0} onNavigate={() => resetTempStates()} />
+        <Silk
+          speed={5}
+          scale={1}
+          color="#2ECC71"
+          noiseIntensity={1}
+          rotation={0}
+          onNavigate={() => {}}
+        />
       </div>
 
       <div className="fixed top-0 left-0 mt-4 right-0 z-[1000] w-full">
@@ -791,12 +573,12 @@ const CompleteEditProfile = () => {
           activeSection === "name"
             ? "Change Name"
             : activeSection === "email"
-              ? "Change Email"
-              : activeSection === "password"
-                ? "Change Password"
-                : activeSection === "delete"
-                  ? "Delete Account"
-                  : "Edit Profile"
+            ? "Change Email"
+            : activeSection === "password"
+            ? "Change Password"
+            : activeSection === "delete"
+            ? "Delete Account"
+            : "Edit Profile"
         }
       >
         {(error || successMessage) && (
@@ -815,8 +597,19 @@ const CompleteEditProfile = () => {
             className="mt-6 text-blue-400 hover:text-blue-300 flex items-center justify-center mx-auto text-sm disabled:opacity-50 transition-colors"
             aria-label="Back to profile"
           >
-            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            <svg
+              className="w-4 h-4 mr-1"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
             </svg>
             Back to Profile
           </button>

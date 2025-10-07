@@ -5,11 +5,8 @@ import {
   login,
   logout,
   signup,
-  verifyOtp,
-  resendOtp,
   editProfile,
   googleCallback,
-  forgotPassword,
   resetPassword,
 } from "../controllers/auth.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
@@ -24,9 +21,6 @@ const authLimiter = rateLimit({
 
 router.post("/signup", authLimiter, signup);
 router.post("/login", authLimiter, login);
-router.post("/verify-otp", authLimiter, verifyOtp);
-router.post("/resend-otp", authLimiter, resendOtp);
-router.post("/forgot-password", authLimiter, forgotPassword);
 router.post("/reset-password", authLimiter, resetPassword);
 
 router.post("/logout", protectRoute, logout);

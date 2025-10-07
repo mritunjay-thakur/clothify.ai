@@ -3,11 +3,8 @@ import {
   signup,
   login,
   logout,
-  verifyOtp,
-  resendOtp,
   getAuthUser,
-  completeEditProfile,
-  forgotPassword,
+  editProfile,
   resetPassword,
 } from "../lib/api";
 
@@ -184,6 +181,9 @@ export const useAuth = () => {
     checkAuth,
     signup: (data) => handleRequest(signup, data),
     login: (data) => handleRequest(login, data),
+    getAuthUser: () => handleRequest(getAuthUser),
+    editProfile: (data) => handleRequest(editProfile, data),
+    resetPassword: (data) => handleRequest(resetPassword, data),
     logout: async () => {
       try {
         await handleRequest(logout);
@@ -204,11 +204,5 @@ export const useAuth = () => {
         throw err;
       }
     },
-    verifyOtp: (data) => handleRequest(verifyOtp, data),
-    resendOtp: (data) => handleRequest(resendOtp, data),
-    getAuthUser: () => handleRequest(getAuthUser),
-    completeEditProfile: (data) => handleRequest(completeEditProfile, data),
-    forgotPassword: (email) => handleRequest(forgotPassword, email),
-    resetPassword: (data) => handleRequest(resetPassword, data),
   };
 };

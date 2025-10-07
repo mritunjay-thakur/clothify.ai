@@ -61,41 +61,6 @@ export const login = async (loginData) => {
   }
 };
 
-export const verifyOtp = async (data) => {
-  try {
-    const response = await axiosInstance.post("/auth/verify-otp", data);
-    return response.data;
-  } catch (err) {
-    throw new Error(
-      err?.response?.status === 429
-        ? err?.response?.data?.message ||
-          `Too many requests, please try again after ${
-            err.response.headers["retry-after"] || 30
-          } seconds.`
-        : err?.response?.data?.message || "OTP verification failed."
-    );
-  }
-};
-
-export const resendOtp = async ({ userId, context }) => {
-  try {
-    const response = await axiosInstance.post("/auth/resend-otp", {
-      userId,
-      context,
-    });
-    return response.data;
-  } catch (err) {
-    throw new Error(
-      err?.response?.status === 429
-        ? err?.response?.data?.message ||
-          `Too many requests, please try again after ${
-            err.response.headers["retry-after"] || 30
-          } seconds.`
-        : err?.response?.data?.message || "Resend OTP failed."
-    );
-  }
-};
-
 export const getAuthUser = async () => {
   try {
     const res = await axiosInstance.get("/auth/me");
@@ -129,7 +94,7 @@ export const logout = async () => {
   }
 };
 
-export const completeEditProfile = async (userData) => {
+export const editProfile = async (userData) => {
   try {
     const response = await axiosInstance.put("/auth/profile", userData);
     return response.data;
@@ -265,27 +230,6 @@ export const deleteConversation = async (conversationId) => {
   }
 };
 
-export const forgotPassword = async (email) => {
-  try {
-    const csrfResponse = await axiosInstance.get("/csrf-token");
-    const csrfToken = csrfResponse.data.csrfToken;
-    const response = await axiosInstance.post("/auth/forgot-password", {
-      email,
-      csrfToken,
-    });
-    return response.data;
-  } catch (err) {
-    throw new Error(
-      err?.response?.status === 429
-        ? err?.response?.data?.message ||
-          `Too many requests, please try again after ${
-            err.response.headers["retry-after"] || 30
-          } seconds.`
-        : err?.response?.data?.message || "Forgot password request failed."
-    );
-  }
-};
-
 export const resetPassword = async (data) => {
   try {
     const response = await axiosInstance.post("/auth/reset-password", data);
@@ -294,9 +238,7 @@ export const resetPassword = async (data) => {
     let errorMessage = err?.response?.data?.message || "Reset password failed.";
 
     if (err?.response?.status === 404) {
-      errorMessage = "Session expired. Please request a new reset link.";
-    } else if (err?.response?.status === 400) {
-      errorMessage = "Invalid or expired OTP. Please request a new code.";
+      errorMessage = "User not found.";
     } else if (err?.response?.status === 429) {
       errorMessage =
         err?.response?.data?.message ||

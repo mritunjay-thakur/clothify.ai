@@ -108,18 +108,14 @@ const SignUpPage = () => {
     if (Object.keys(errors).length > 0) return;
 
     try {
-      const response = await signup({
+      await signup({
         fullName: formData.fullName.trim(),
         email: formData.email.toLowerCase().trim(),
         password: formData.password,
       });
 
-      navigate("/verify-otp", {
-        state: {
-          email: formData.email,
-          userId: response.userId,
-        },
-      });
+      // Redirect directly to clothify after successful signup
+      navigate("/clothify", { replace: true });
     } catch (err) {
       setGlobalError(
         err.message.includes("already exists")
@@ -130,6 +126,7 @@ const SignUpPage = () => {
       );
     }
   };
+
   const handleGoogleAuth = () => {
     setGoogleLoading(true);
     const baseUrl = process.env.VITE_API_BASE_URL;

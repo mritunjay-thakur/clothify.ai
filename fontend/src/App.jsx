@@ -17,10 +17,6 @@ const CompleteEditProfile = lazyWithPrefetch(() =>
   import("./pages/CompleteEditProfile")
 );
 const AskClothifyAi = lazyWithPrefetch(() => import("./pages/AskClothifyAi"));
-const VerifyOtp = lazyWithPrefetch(() => import("./pages/VerifyOtp"));
-const ResetPasswordPage = lazyWithPrefetch(() =>
-  import("./pages/ResetPasswordPage")
-);
 const SupportPage = lazyWithPrefetch(() => import("./pages/Support"));
 
 const ProtectedRoute = ({ children }) => {
@@ -130,22 +126,6 @@ const App = () => {
           element={
             <AuthRoute>
               <SignUpPage />
-            </AuthRoute>
-          }
-        />
-        <Route
-          path="/verify-otp"
-          element={
-            <AuthRoute>
-              <VerifyOtp />
-            </AuthRoute>
-          }
-        />
-        <Route
-          path="/reset-password"
-          element={
-            <AuthRoute>
-              <ResetPasswordPage />
             </AuthRoute>
           }
         />

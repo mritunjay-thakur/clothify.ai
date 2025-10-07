@@ -16,7 +16,6 @@ import authRoutes from "./routes/auth.route.js";
 import chatRoutes from "./routes/chat.route.js";
 import aiRoutes from "./routes/ai.route.js";
 import conversationRoutes from "./routes/conversation.route.js";
-import messageRouter from "./routes/message.route.js";
 import { connectDB } from "./lib/db.js";
 
 const requiredEnvVars = ["JWT_SECRET_KEY", "FRONTEND_URL"];
@@ -89,7 +88,6 @@ app.use("/api/auth", authRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api", conversationRoutes);
-app.use("/api/messages", messageRouter);
 
 app.get("/api/csrf-token", csrfProtection, (req, res) => {
   res.json({ csrfToken: req.csrfToken() });

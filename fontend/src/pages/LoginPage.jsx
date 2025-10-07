@@ -21,7 +21,7 @@ const useDebounce = (value, delay) => {
 const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, loading, error: authError, forgotPassword } = useAuth();
+  const { login, loading, error: authError } = useAuth();
 
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
@@ -94,8 +94,6 @@ const LoginPage = () => {
       setGlobalError(
         err.message.includes("Invalid credentials")
           ? "Invalid email or password"
-          : err.message.includes("not verified")
-          ? "Verify your email first"
           : "Login failed. Please try again."
       );
     }
@@ -105,27 +103,6 @@ const LoginPage = () => {
     setGoogleLoading(true);
     const baseUrl = process.env.VITE_API_BASE_URL;
     window.location.href = `${baseUrl}/auth/google?mobile=${isMobile}`;
-  };
-
-  const handleForgotPassword = async (e) => {
-    e.preventDefault();
-    if (!formData.email) {
-      setErrors({ email: "Email is required" });
-      return;
-    }
-
-    try {
-      const response = await forgotPassword(formData.email);
-      navigate("/reset-password", {
-        state: { email: formData.email, userId: response.userId },
-      });
-    } catch (err) {
-      setGlobalError(
-        err.message.includes("not found")
-          ? "No account with this email"
-          : "Password reset failed"
-      );
-    }
   };
 
   const MemoizedFormInput = useMemo(() => FormInput, []);
@@ -179,17 +156,6 @@ const LoginPage = () => {
             autoComplete="current-password"
             disabled={loading}
           />
-
-          <div className="text-right">
-            <button
-              type="button"
-              onClick={handleForgotPassword}
-              className="text-sm text-white/60 hover:text-white/80"
-              disabled={loading}
-            >
-              Forgot password?
-            </button>
-          </div>
 
           <button
             type="submit"
